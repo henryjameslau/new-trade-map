@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Trade - worldmap</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+	<!--<script src="lib/d3.v3.min.js"></script>-->
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,600|Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    <script src="https://cdn.ons.gov.uk/vendor/pym/1.3.2/pym.min.js"></script>
+    <script src="https://cdn.ons.gov.uk/vendor/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-queue/3.0.7/d3-queue.min.js"></script>
+    <script src="lib/modernizr.custom.56904.js"></script>
+
+<style>
+
+.row {
+/*  margin-left: -15px;*/
+/*  margin-right: -15px;*/
+}
+.col-xs-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xs-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xs-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xs-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xs-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xs-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xs-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xs-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xs-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xs-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xs-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xs-12, .col-sm-12, .col-md-12, .col-lg-12 {
+  position: relative;
+  min-height: 1px;
+  /*padding-left: 15px;*/
+  /*padding-right: 15px;*/
+}
+.col-xs-1, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9, .col-xs-10, .col-xs-11, .col-xs-12 {
+  float: left;
+}
+.col-xs-12 {
+  width: 100%;
+}
+.col-xs-11 {
+  width: 91.66666667%;
+}
+.col-xs-10 {
+  width: 83.33333333%;
+}
+.col-xs-9 {
+  width: 75%;
+}
+.col-xs-8 {
+  width: 66.66666667%;
+}
+.col-xs-7 {
+  width: 58.33333333%;
+}
+.col-xs-6 {
+  width: 50%;
+}
+.col-xs-5 {
+  width: 41.66666667%;
+}
+.col-xs-4 {
+  width: 33.33333333%;
+}
+.col-xs-3 {
+  width: 25%;
+}
+.col-xs-2 {
+  width: 16.66666667%;
+}
+.col-xs-1 {
+  width: 8.33333333%;
+}
+.col-xs-pull-12 {
+  right: 100%;
+}
+.col-xs-pull-11 {
+  right: 91.66666667%;
+}
+.col-xs-pull-10 {
+  right: 83.33333333%;
+}
+.col-xs-pull-9 {
+  right: 75%;
+}
+.col-xs-pull-8 {
+  right: 66.66666667%;
+}
+.col-xs-pull-7 {
+  right: 58.33333333%;
+}
+.col-xs-pull-6 {
+  right: 50%;
+}
+.col-xs-pull-5 {
+  right: 41.66666667%;
+}
+.col-xs-pull-4 {
+  right: 33.33333333%;
+}
+.col-xs-pull-3 {
+  right: 25%;
+}
+.col-xs-pull-2 {
+  right: 16.66666667%;
+}
+.col-xs-pull-1 {
+  right: 8.33333333%;
+}
+.col-xs-pull-0 {
+  right: auto;
+}
+.col-xs-push-12 {
+  left: 100%;
+}
+.col-xs-push-11 {
+  left: 91.66666667%;
+}
+.col-xs-push-10 {
+  left: 83.33333333%;
+}
+.col-xs-push-9 {
+  left: 75%;
+}
+.col-xs-push-8 {
+  left: 66.66666667%;
+}
+.col-xs-push-7 {
+  left: 58.33333333%;
+}
+.col-xs-push-6 {
+  left: 50%;
+}
+.col-xs-push-5 {
+  left: 41.66666667%;
+}
+.col-xs-push-4 {
+  left: 33.33333333%;
+}
+.col-xs-push-3 {
+  left: 25%;
+}
+.col-xs-push-2 {
+  left: 16.66666667%;
+}
+.col-xs-push-1 {
+  left: 8.33333333%;
+}
+.col-xs-push-0 {
+  left: auto;
+}
+.col-xs-offset-12 {
+  margin-left: 100%;
+}
+.col-xs-offset-11 {
+  margin-left: 91.66666667%;
+}
+.col-xs-offset-10 {
+  margin-left: 83.33333333%;
+}
+.col-xs-offset-9 {
+  margin-left: 75%;
+}
+.col-xs-offset-8 {
+  margin-left: 66.66666667%;
+}
+.col-xs-offset-7 {
+  margin-left: 58.33333333%;
+}
+.col-xs-offset-6 {
+  margin-left: 50%;
+}
+.col-xs-offset-5 {
+  margin-left: 41.66666667%;
+}
+.col-xs-offset-4 {
+  margin-left: 33.33333333%;
+}
+.col-xs-offset-3 {
+  margin-left: 25%;
+}
+.col-xs-offset-2 {
+  margin-left: 16.66666667%;
+}
+.col-xs-offset-1 {
+  margin-left: 8.33333333%;
+}
+.col-xs-offset-0 {
+  margin-left: 0%;
+}
+@media (min-width: 600px) {
+  .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12 {
+  float: left;
+  }
+  .col-sm-12 {
+  width: 100%;
+  }
+  .col-sm-11 {
+  width: 91.66666667%;
+  }
+  .col-sm-10 {
+  width: 83.33333333%;
+  }
+  .col-sm-9 {
+  width: 75%;
+  }
+  .col-sm-8 {
+  width: 66.66666667%;
+  }
+  .col-sm-7 {
+  width: 58.33333333%;
+  }
+  .col-sm-6 {
+  width: 50%;
+  }
+  .col-sm-5 {
+  width: 41.66666667%;
+  }
+  .col-sm-4 {
+  width: 33.33333333%;
+  }
+  .col-sm-3 {
+  width: 25%;
+  }
+  .col-sm-2 {
+  width: 16.66666667%;
+  }
+  .col-sm-1 {
+  width: 8.33333333%;
+  }
+  .col-sm-pull-12 {
+  right: 100%;
+  }
+  .col-sm-pull-11 {
+  right: 91.66666667%;
+  }
+  .col-sm-pull-10 {
+  right: 83.33333333%;
+  }
+  .col-sm-pull-9 {
+  right: 75%;
+  }
+  .col-sm-pull-8 {
+  right: 66.66666667%;
+  }
+  .col-sm-pull-7 {
+  right: 58.33333333%;
+  }
+  .col-sm-pull-6 {
+  right: 50%;
+  }
+  .col-sm-pull-5 {
+  right: 41.66666667%;
+  }
+  .col-sm-pull-4 {
+  right: 33.33333333%;
+  }
+  .col-sm-pull-3 {
+  right: 25%;
+  }
+  .col-sm-pull-2 {
+  right: 16.66666667%;
+  }
+  .col-sm-pull-1 {
+  right: 8.33333333%;
+  }
+  .col-sm-pull-0 {
+  right: auto;
+  }
+  .col-sm-push-12 {
+  left: 100%;
+  }
+  .col-sm-push-11 {
+  left: 91.66666667%;
+  }
+  .col-sm-push-10 {
+  left: 83.33333333%;
+  }
+  .col-sm-push-9 {
+  left: 75%;
+  }
+  .col-sm-push-8 {
+  left: 66.66666667%;
+  }
+  .col-sm-push-7 {
+  left: 58.33333333%;
+  }
+  .col-sm-push-6 {
+  left: 50%;
+  }
+  .col-sm-push-5 {
+  left: 41.66666667%;
+  }
+  .col-sm-push-4 {
+  left: 33.33333333%;
+  }
+  .col-sm-push-3 {
+  left: 25%;
+  }
+  .col-sm-push-2 {
+  left: 16.66666667%;
+  }
+  .col-sm-push-1 {
+  left: 8.33333333%;
+  }
+  .col-sm-push-0 {
+  left: auto;
+  }
+  .col-sm-offset-12 {
+  margin-left: 100%;
+  }
+  .col-sm-offset-11 {
+  margin-left: 91.66666667%;
+  }
+  .col-sm-offset-10 {
+  margin-left: 83.33333333%;
+  }
+  .col-sm-offset-9 {
+  margin-left: 75%;
+  }
+  .col-sm-offset-8 {
+  margin-left: 66.66666667%;
+  }
+  .col-sm-offset-7 {
+  margin-left: 58.33333333%;
+  }
+  .col-sm-offset-6 {
+  margin-left: 50%;
+  }
+  .col-sm-offset-5 {
+  margin-left: 41.66666667%;
+  }
+  .col-sm-offset-4 {
+  margin-left: 33.33333333%;
+  }
+  .col-sm-offset-3 {
+  margin-left: 25%;
+  }
+  .col-sm-offset-2 {
+  margin-left: 16.66666667%;
+  }
+  .col-sm-offset-1 {
+  margin-left: 8.33333333%;
+  }
+  .col-sm-offset-0 {
+  margin-left: 0%;
+  }
+}
+
+</style>
+
+</head>
+<body>
+<div class="row">
+    <div id="mapDiv" class="col-sm-9 hidden-xs">
+
+
+    </div>
+    <div id="barcode" class="col-sm-3 col-xs-12"></div>
+</div>
+<div class="row">
+  <div id="graphs" class="col-xs-12"></div>
+<div>
+
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MBCBVQS');
+  </script>
+
+<script>
+
+
+if (Modernizr.inlinesvg) {
+
+
+  d3.queue()
+          .defer(d3.csv, "exports.csv")
+          .defer(d3.csv, "imports.csv")
+          .defer(d3.json, "config.json")
+          .defer(d3.json, "geo/worldjson8.json")
+          .await(ready);
+
+
+function ready (error, dataexports, dataimports, config, geog){
+  console.log(dataexports)
+
+  var margin = {top: 0, right: 0, bottom: 0, left: 0};
+              //width = 960 - margin.left - margin.right,
+              //height = 500 - margin.top - margin.bottom;
+  width=d3.select("#mapDiv").style("width")
+  width = parseInt(width)
+  height=width*0.6
+
+  var path = d3.geoPath();
+
+  var svg = d3.select("#mapDiv")
+              .append("svg")
+              .attr("width", width)
+              .attr("height", height)
+              .append('g')
+              .attr('class', 'map');
+
+  var projection = d3.geoNaturalEarth1()
+                     .scale(240)
+                     .translate( [width/2, height/2]);
+
+  var path = d3.geoPath().projection(projection);
+
+  svg.append("g")
+      .attr("class", "countries")
+    .selectAll("path")
+      .data(topojson.feature(geog, geog.objects.worldjson8).features)
+    .enter().append("path")
+      .attr("d", path)
+      .style("fill", "papapawhip")
+      .style('stroke', 'white')
+      .style('stroke-width', 1.5)
+      .style("opacity",0.8)
+      .on("mouseover",function(d){
+        filterdata(d.properties.fips)
+      })
+
+getLastYear();
+getColumnNames();
+
+//gets the last year in the dataset
+function getLastYear(){
+  var years = dataimports.map(function(obj) { return obj.Year; });
+  years = years.filter(function(v,i) { return years.indexOf(v) == i; });
+  yearssorted = years.sort(function(a, b){return +a-+b});
+  lastyear = yearssorted[yearssorted.length-1]
+}
+
+//gets the commodity codes
+function getColumnNames(){
+  //Get column names and number
+        variables = [];
+        for (var column in dataimports[0]) {
+            if (column == "CountryName") continue;
+            if (column == "CountryId") continue;
+            if (column == "Year") continue;
+            variables.push(column);
+        }
+}
+
+function filterdata(code){
+console.log(code)
+latestcountrydata = dataimports.filter(function(d){return d.CountryId==code && d.Year==lastyear})
+console.log(latestcountrydata)
+
+lastyeardata = [];
+for (var column in latestcountrydata[0]) {
+    if (column == "CountryName") continue;
+    if (column == "CountryId") continue;
+    if (column == "Year") continue;
+    lastyeardata.push(latestcountrydata[0][column]);
+}
+
+zippeddata=d3.zip(lastyeardata,variables).sort(function(a,b){return d3.descending(+a[0],+b[0]);}).slice(0,5)
+console.log(zippeddata);
+
+top5codes=[];
+zippeddata.forEach(function(d,i){
+  top5codes.push(d[1])
+})
+console.log(top5codes)
+
+// top5data = []
+// for (var column in countrydata[0]){
+//   if(column == top5[0]){
+//   top5data.push(countrydata[0][column])
+//   }
+// }
+// console.log(top5data)
+
+var countrydata_all = dataimports.filter(function(d){return d.CountryId==code})
+
+console.log(d3.keys(countrydata_all[0]).filter(function(key){return key==top5codes[0]}))
+top5data = []
+for (var i=0; i < top5codes.length; i++){
+  console.log(countrydata_all.filter(function(d){return d[top5[i]]}));
+}
+
+
+
+}//end filterdata
+
+
+}//end ready
+}//end modernizr
+else {
+
+
+
+  var pymChild = new pym.Child();
+
+  setInterval(function(){pymChild.sendHeight();},1000)
+}
+
+
+</script>
+
+
+    <script>
+
+
+
+  </script>
+
+</body>
+</html>
