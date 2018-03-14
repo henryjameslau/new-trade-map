@@ -461,14 +461,6 @@ zippeddata.forEach(function(d,i){
 console.log("top5codes")
 console.log(top5codes)
 
-// top5data = []
-// for (var column in countrydata[0]){
-//   if(column == top5[0]){
-//   top5data.push(countrydata[0][column])
-//   }
-// }
-// console.log(top5data)
-
 //get data for that country for all years
 countrydata_all = dataimports.filter(function(d){return d.CountryId==code})
 console.log("countrydata_all")
@@ -485,22 +477,22 @@ countrydata_all.forEach(function(d){
 console.log("temparray")
 console.log(temparray)
 
-//put it into a format for lines
+//put it into a format for sparklines
 newarray = {};
 for(var i=0;i<top5codes.length;i++){
-  newarray[top5codes[i]]=temparray.filter(function(d){return d.code==top5codes[i]}).map(function(d){return {date:d3.timeParse("%Y")(d.year),amt:d.amt}})
+  newarray[top5codes[i]]=temparray.filter(function(d){return d.code==top5codes[i]})
+                                  .map(function(d){return {date:d3.timeParse("%Y")(d.year),amt:d.amt}})
 }
 console.log("newarray")
 console.log(newarray)
 
-// var values =  data.map(function(d) { return +eval(“d.” + variables[a]); }).filter(function(d) {return !isNaN(d)}).sort(d3.ascending);
-
-
-// top5data = []
-// for (var i=0; i < top5codes.length; i++){
-//   console.log(countrydata_all.filter(function(d){return d[top5codes[i]]}));
-// }
-
+//stuff for bar charts
+bars = [];
+for (var i=0;i<top5codes.length;i++){
+  bars.push({'name':top5codes[i],amt:+latestcountrydata[0][top5codes[i]]})
+}
+console.log("data for bars")
+console.log(bars)
 
 
 }//end filterdata
