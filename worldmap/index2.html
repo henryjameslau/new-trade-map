@@ -485,7 +485,7 @@ console.log(temparray)
 
 newarray = {};
 for(var i=0;i<top5codes.length;i++){
-  newarray[top5codes[i]]=temparray.map(function(d){return {date:d3.timeParse("%Y")(d.year),amt:d.amt}})
+  newarray[top5codes[i]]=temparray.filter(function(d){return d.code==top5codes[i]}).map(function(d){return {date:d3.timeParse("%Y")(d.year),amt:d.amt}})
 }
 console.log("newarray")
 console.log(newarray)
