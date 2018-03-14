@@ -370,7 +370,7 @@ if (Modernizr.inlinesvg) {
 
   d3.queue()
           .defer(d3.csv, "exports.csv")
-          .defer(d3.csv, "imports.csv")
+          .defer(d3.csv, "dummyimports.csv")
           .defer(d3.json, "config.json")
           .defer(d3.json, "geo/worldjson8.json")
           .await(ready);
@@ -469,20 +469,23 @@ console.log(top5codes)
 // }
 // console.log(top5data)
 
+//get data for that country for all years
 countrydata_all = dataimports.filter(function(d){return d.CountryId==code})
 console.log("countrydata_all")
 console.log(countrydata_all)
 
+
+//find the data for all the top 5 commodities
 temparray=[]
 countrydata_all.forEach(function(d){
     for(var i=0;i<top5codes.length;i++){
-      temparray.push({year:+d.Year,code:top5codes[i],amt:+d[top5codes[0]]})
-      //d.map(function(e,i){return {year:d.Year,code:top5codes[i],value:d[top5codes[i]]}})
+      temparray.push({year:+d.Year,code:top5codes[i],amt:+d[top5codes[i]]})
     }
   })
 console.log("temparray")
 console.log(temparray)
 
+//put it into a format for lines
 newarray = {};
 for(var i=0;i<top5codes.length;i++){
   newarray[top5codes[i]]=temparray.filter(function(d){return d.code==top5codes[i]}).map(function(d){return {date:d3.timeParse("%Y")(d.year),amt:d.amt}})
