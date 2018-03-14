@@ -365,7 +365,6 @@
 
 <script>
 
-
 if (Modernizr.inlinesvg) {
 
 
@@ -459,6 +458,7 @@ top5codes=[];
 zippeddata.forEach(function(d,i){
   top5codes.push(d[1])
 })
+console.log("top5codes")
 console.log(top5codes)
 
 // top5data = []
@@ -469,13 +469,34 @@ console.log(top5codes)
 // }
 // console.log(top5data)
 
-var countrydata_all = dataimports.filter(function(d){return d.CountryId==code})
+countrydata_all = dataimports.filter(function(d){return d.CountryId==code})
+console.log("countrydata_all")
+console.log(countrydata_all)
 
-console.log(d3.keys(countrydata_all[0]).filter(function(key){return key==top5codes[0]}))
-top5data = []
-for (var i=0; i < top5codes.length; i++){
-  console.log(countrydata_all.filter(function(d){return d[top5[i]]}));
+temparray=[]
+countrydata_all.forEach(function(d){
+    for(var i=0;i<top5codes.length;i++){
+      temparray.push({year:+d.Year,code:top5codes[i],amt:+d[top5codes[0]]})
+      //d.map(function(e,i){return {year:d.Year,code:top5codes[i],value:d[top5codes[i]]}})
+    }
+  })
+console.log("temparray")
+console.log(temparray)
+
+newarray = {};
+for(var i=0;i<top5codes.length;i++){
+  newarray[top5codes[i]]=temparray.map(function(d){return {date:d3.timeParse("%Y")(d.year),amt:d.amt}})
 }
+console.log("newarray")
+console.log(newarray)
+
+// var values =  data.map(function(d) { return +eval(“d.” + variables[a]); }).filter(function(d) {return !isNaN(d)}).sort(d3.ascending);
+
+
+// top5data = []
+// for (var i=0; i < top5codes.length; i++){
+//   console.log(countrydata_all.filter(function(d){return d[top5codes[i]]}));
+// }
 
 
 
