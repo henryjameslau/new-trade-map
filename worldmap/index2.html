@@ -161,9 +161,10 @@ console.log("newarray")
 console.log(newarray)
 
 //stuff for bar charts
-bars = [];
+bars = []
 for (var i=0;i<top5codes.length;i++){
-  bars.push({'name':top5codes[i],amt:+latestcountrydata[0][top5codes[i]]})
+  // bars.push([top5codes[i],+latestcountrydata[0][top5codes[i]]])
+  bars.push({'name':top5codes[i],'amt':+latestcountrydata[0][top5codes[i]]})
 }
 console.log("data for bars")
 console.log(bars)
@@ -180,9 +181,9 @@ svg.append('g').attr("class","bars").selectAll('rect')
      .enter()
      .append('rect')
      .attr("fill", "steelblue")
-     .attr("width", x(d.amt))
-     .attr("x", x(0))
-     .attr("y", y(d.name))
+     .attr("width", function(d){return x(d.amt)})
+     .attr("x", function(d){return x(0)})
+     .attr("y", function(d){return y(d.name)})
      .attr("height", y.bandwidth())
 
 
