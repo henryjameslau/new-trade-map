@@ -198,6 +198,42 @@ svg.selectAll(".bars").selectAll('rect')
     .attr("width", function(d){return x(d.amt)})
     .attr("height", y.bandwidth())
 
+//sparkline stuff
+
+// yspark.domain = [d3.min(d3.entries(newarray),function(c){
+//                   return d3.min(c.value, function(v){
+//                     var n = v.amt;
+//                     return Math.floor(n);
+//                   })
+//                 })
+//                 ,
+//                 d3.max(d3.entries(newarray), function(c) {
+// 									return d3.max(c.value, function(v) {
+// 										var n = v.amt;
+// 										return Math.ceil(n);
+// 									});
+// 								})]
+
+
+
+svgSpark.select('.y')
+.transition()
+.call(yAxisSpark);
+
+svgSpark.append('g').selectAll('path')
+    .data(d3.entries(newarray))
+    .enter()
+    .append('path')
+    .style("stroke", "black")
+    .style("fill", 'none')
+    .style("stroke-width", 3)
+    .style("stroke-linecap", 'round')
+    .style("stroke-linejoin", 'round')
+    .attr('d', function(d) {
+        return line(d.value);
+    });
+
+
 }//end filterdata
 
 //make a bar chart
@@ -247,7 +283,38 @@ var svg = d3.select('#imports').append('svg')
           .attr("fill", "steelblue")
           .attr("x", function(d){return x(0)})
 
+//here be some stuff for making sparklines
+var xspark = d3.scaleTime()
+    .range([0, width/12]);
 
+var yspark = d3.scaleLinear()
+    .range([0,y.bandwidth()])
+
+xspark.domain([d3.timeParse("%Y")(yearssorted[0]),d3.timeParse("%Y")(yearssorted[yearssorted.length])])
+
+var xAxisSpark = d3.axisBottom(xspark)
+var yAxisSpark = d3.axisLeft(yspark)
+
+//function to make a line
+var line = d3.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.amt); });
+
+var svgSpark = d3.select("#sparkline")
+              .append('svg')
+              .attr("id","sparkchart")
+              .style("background-color","#fff")
+							.attr("width", width/12)
+							.attr("height", 300 + margin.top + margin.bottom )  //+30)
+							.append("g")
+
+              svgSpark.append('g')
+  				        .attr('class', 'y axis')
+  				        .call(yAxisSpark);
+
+              svgSpark.append('g')
+  				        .attr('class', 'x axis')
+  				        .call(xAxisSpark);
 }//end ready
 }//end modernizr
 else {
