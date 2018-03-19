@@ -26,7 +26,12 @@
     <div id="barcode" class="col-sm-3 col-xs-12"></div>
 </div>
 <div class="row">
-  <div id="imports" class="col-xs-6"></div>
+  <div class="col-xs-6">
+    <div class="row">
+      <div id="imports" class="col-xs-10"></div>
+      <div id="sparkline" class="col-xs-2"></div>
+    </div>
+  </div>
   <div id="exports" class="col-xs-6"></div>
 <div>
 
@@ -44,7 +49,7 @@ if (Modernizr.inlinesvg) {
 
   d3.queue()
           .defer(d3.csv, "exports.csv")
-          .defer(d3.csv, "dummyimports.csv")
+          .defer(d3.csv, "dummyimports2.csv")
           .defer(d3.json, "config.json")
           .defer(d3.json, "geo/worldjson8.json")
           .await(ready);
@@ -81,7 +86,7 @@ function ready (error, dataexports, dataimports, config, geog){
       .data(topojson.feature(geog, geog.objects.worldjson8).features)
     .enter().append("path")
       .attr("d", path)
-      .style("fill", "papapawhip")
+      .style("fill", "DarkGreen")
       .style('stroke', 'white')
       .style('stroke-width', 1.5)
       .style("opacity",0.8)
@@ -125,9 +130,11 @@ for (var column in latestcountrydata[0]) {
     lastyeardata.push(latestcountrydata[0][column]);
 }
 
+//zip the data with list of variables, sort it descending, then take top 5
 zippeddata=d3.zip(lastyeardata,variables).sort(function(a,b){return d3.descending(+a[0],+b[0]);}).slice(0,5)
 console.log(zippeddata);
 
+//get the codes for the top 5 commodities
 top5codes=[];
 zippeddata.forEach(function(d,i){
   top5codes.push(d[1])
@@ -139,7 +146,6 @@ console.log(top5codes)
 countrydata_all = dataimports.filter(function(d){return d.CountryId==code})
 console.log("countrydata_all")
 console.log(countrydata_all)
-
 
 //find the data for all the top 5 commodities
 temparray=[]
@@ -163,30 +169,34 @@ console.log(newarray)
 //stuff for bar charts
 bars = []
 for (var i=0;i<top5codes.length;i++){
-  // bars.push([top5codes[i],+latestcountrydata[0][top5codes[i]]])
   bars.push({'name':top5codes[i],'amt':+latestcountrydata[0][top5codes[i]]})
 }
 console.log("data for bars")
 console.log(bars)
 
+//find the max number for the x domain
+xMax = d3.max(bars,function(v){
+  var n = v.amt;
+  return Math.ceil(n);
+})
 
-d3.selectAll(".y").selectAll("*").remove()
+x.domain([0,xMax])
+
+svg.select(".x")
+				.transition()
+				.call(xAxis);
+
 y.domain(top5codes)
-svg.append('g')
-      .attr('class', 'y axis')
+svg.select('.y')
+      .transition()
       .call(yAxis);
 
-svg.append('g').attr("class","bars").selectAll('rect')
-     .data(bars)
-     .enter()
-     .append('rect')
-     .attr("fill", "steelblue")
-     .attr("width", function(d){return x(d.amt)})
-     .attr("x", function(d){return x(0)})
-     .attr("y", function(d){return y(d.name)})
-     .attr("height", y.bandwidth())
-
-
+svg.selectAll(".bars").selectAll('rect')
+    .data(bars)
+    .attr("y", function(d){return y(d.name)})
+    .transition()
+    .attr("width", function(d){return x(d.amt)})
+    .attr("height", y.bandwidth())
 
 }//end filterdata
 
@@ -198,11 +208,6 @@ var x = d3.scaleLinear()
 var y = d3.scaleBand()
           .rangeRound([0, 300])
           .paddingInner(0.1);
-
-    //y.domain(["1","2","3","4","5"])
-
-    //manually set the x-axis for now
-    x.domain([0,1000000])
 
 var yAxis = d3.axisLeft(y)
 
@@ -235,6 +240,12 @@ var svg = d3.select('#imports').append('svg')
            .attr('class', 'y axis')
            .call(yAxis);
 
+     svg.append('g').attr("class","bars").selectAll('rect')
+          .data([0,0,0,0,0])
+          .enter()
+          .append('rect')
+          .attr("fill", "steelblue")
+          .attr("x", function(d){return x(0)})
 
 
 }//end ready
