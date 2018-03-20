@@ -63,7 +63,7 @@ function ready (error, dataexports, dataimports, config, geog){
               //height = 500 - margin.top - margin.bottom;
   width=d3.select("#mapDiv").style("width")
   width = parseInt(width)
-  height=width*0.6
+  height=width*0.55
 
   var path = d3.geoPath();
 
@@ -75,7 +75,7 @@ function ready (error, dataexports, dataimports, config, geog){
               .attr('class', 'map');
 
   var projection = d3.geoNaturalEarth1()
-                     .scale(240)
+                     .scale(width*0.20)
                      .translate( [width/2, height/2]);
 
   var path = d3.geoPath().projection(projection);
@@ -201,7 +201,7 @@ svg.selectAll(".bars").selectAll('rect')
 
 //sparkline stuff
 
-yspark.domain = [d3.min(d3.entries(newarray),function(c){
+yspark.domain([d3.min(d3.entries(newarray),function(c){
                   return d3.min(c.value, function(v){
                     var n = v.amt;
                     return Math.floor(n);
@@ -213,20 +213,19 @@ yspark.domain = [d3.min(d3.entries(newarray),function(c){
 										var n = v.amt;
 										return Math.ceil(n);
 									});
-								})]
-
-
+								})])
 
 svgSpark.select('.yspark')
-.transition()
-.call(yAxisSpark);
+        .transition()
+        .call(yAxisSpark);
 
-svgSpark.append('g').selectAll('path')
-    .data(d3.entries(newarray))
-    .transition()
-    .attr('d', function(d) {
-        return line(d.value);
-    });
+svgSpark.select('g').selectAll('path')
+        .data(d3.entries(newarray))
+        .style("stroke",function(d,i){return colour_palette[i];})
+        .transition()
+        .attr('d', function(d) {
+            return line(d.value);
+        });
 
 
 }//end filterdata
@@ -280,12 +279,15 @@ var svg = d3.select('#imports').append('svg')
 
 //here be some stuff for making sparklines
 var xspark = d3.scaleTime()
-    .range([0, width/12]);
+    .range([0, width/6]);
 
 var yspark = d3.scaleLinear()
     .range([0,y.bandwidth()])
 
-xspark.domain([d3.timeParse("%Y")(yearssorted[0]),d3.timeParse("%Y")(yearssorted[yearssorted.length])])
+xspark.domain([d3.timeParse("%Y")(yearssorted[0]),d3.timeParse("%Y")(yearssorted[yearssorted.length-1])])
+// console.log([d3.timeParse("%Y")(yearssorted[yearssorted.length-1]),d3.timeParse("%Y")(yearssorted[0])])
+yspark.domain([0,100000])
+
 
 var xAxisSpark = d3.axisBottom(xspark)
 var yAxisSpark = d3.axisLeft(yspark)
@@ -295,11 +297,14 @@ var line = d3.line()
     .x(function(d) { return xspark(d.date); })
     .y(function(d) { return yspark(d.amt); });
 
+
+    colour_palette=["steelblue","DarkGreen","Fuchsia","IndianRed","Lavender"]
+
 var svgSpark = d3.select("#exports")
               .append('svg')
               .attr("id","sparkchart")
               .style("background-color","#fff")
-							.attr("width", width/12)
+							.attr("width", width)
 							.attr("height", 300 + margin.top + margin.bottom )  //+30)
 							.append("g")
               .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -312,9 +317,37 @@ var svgSpark = d3.select("#exports")
   				        .attr('class', 'xspark axis')
   				        .call(xAxisSpark);
 
-            // svg.append('g').selectAll('path')
-  			    //     .data({[date],[],[],[],[]})
-  			    //     .enter()
+              svgSpark.append('g').selectAll('path')
+    			        .data({key:"1",value:[{date: "Date 2012-01-01T00:00:00.000Z", amt: "0"},
+                         {date: "Date 2013-01-01T00:00:00.000Z", amt: "0"},
+                         {date: "Date 2014-01-01T00:00:00.000Z", amt: "0"},
+                         {date: "Date 2015-01-01T00:00:00.000Z", amt: "0"},
+                         {date: "Date 2016-01-01T00:00:00.000Z", amt: "0"}]},
+                         {key:"2",value:[{date: "Date 2012-01-01T00:00:00.000Z", amt: "0"},
+                          {date: "Date 2013-01-01T00:00:00.000Z", amt: "0"},
+                          {date: "Date 2014-01-01T00:00:00.000Z", amt: "0"},
+                          {date: "Date 2015-01-01T00:00:00.000Z", amt: "0"},
+                          {date: "Date 2016-01-01T00:00:00.000Z", amt: "0"}]},
+                          {key:"3",value:[{date: "Date 2012-01-01T00:00:00.000Z", amt: "0"},
+                           {date: "Date 2013-01-01T00:00:00.000Z", amt: "0"},
+                           {date: "Date 2014-01-01T00:00:00.000Z", amt: "0"},
+                           {date: "Date 2015-01-01T00:00:00.000Z", amt: "0"},
+                           {date: "Date 2016-01-01T00:00:00.000Z", amt: "0"}]},
+                           {key:"4",value:[{date: "Date 2012-01-01T00:00:00.000Z", amt: "0"},
+                            {date: "Date 2013-01-01T00:00:00.000Z", amt: "0"},
+                            {date: "Date 2014-01-01T00:00:00.000Z", amt: "0"},
+                            {date: "Date 2015-01-01T00:00:00.000Z", amt: "0"},
+                            {date: "Date 2016-01-01T00:00:00.000Z", amt: "0"}]},
+                            {key:"5",value:[{date: "Date 2012-01-01T00:00:00.000Z", amt: "0"},
+                             {date: "Date 2013-01-01T00:00:00.000Z", amt: "0"},
+                             {date: "Date 2014-01-01T00:00:00.000Z", amt: "0"},
+                             {date: "Date 2015-01-01T00:00:00.000Z", amt: "0"},
+                             {date: "Date 2016-01-01T00:00:00.000Z", amt: "0"}]}
+                     )
+    			        .enter()
+                  .attr('d', function(d) {
+                      return line(d.value);
+                  });
 
 }//end ready
 }//end modernizr
