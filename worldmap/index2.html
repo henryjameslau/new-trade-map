@@ -345,6 +345,7 @@ var svgSpark = d3.select("#exports")
                              {date: "Date 2016-01-01T00:00:00.000Z", amt: "0"}]}
                      )
     			        .enter()
+                  .append('path')
                   .attr('d', function(d) {
                       return line(d.value);
                   });
