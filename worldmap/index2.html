@@ -165,6 +165,7 @@ for(var i=0;i<top5codes.length;i++){
 }
 console.log("newarray")
 console.log(newarray)
+console.log(d3.entries(newarray))
 
 //stuff for bar charts
 bars = []
@@ -200,35 +201,29 @@ svg.selectAll(".bars").selectAll('rect')
 
 //sparkline stuff
 
-// yspark.domain = [d3.min(d3.entries(newarray),function(c){
-//                   return d3.min(c.value, function(v){
-//                     var n = v.amt;
-//                     return Math.floor(n);
-//                   })
-//                 })
-//                 ,
-//                 d3.max(d3.entries(newarray), function(c) {
-// 									return d3.max(c.value, function(v) {
-// 										var n = v.amt;
-// 										return Math.ceil(n);
-// 									});
-// 								})]
+yspark.domain = [d3.min(d3.entries(newarray),function(c){
+                  return d3.min(c.value, function(v){
+                    var n = v.amt;
+                    return Math.floor(n);
+                  })
+                })
+                ,
+                d3.max(d3.entries(newarray), function(c) {
+									return d3.max(c.value, function(v) {
+										var n = v.amt;
+										return Math.ceil(n);
+									});
+								})]
 
 
 
-svgSpark.select('.y')
+svgSpark.select('.yspark')
 .transition()
 .call(yAxisSpark);
 
 svgSpark.append('g').selectAll('path')
     .data(d3.entries(newarray))
-    .enter()
-    .append('path')
-    .style("stroke", "black")
-    .style("fill", 'none')
-    .style("stroke-width", 3)
-    .style("stroke-linecap", 'round')
-    .style("stroke-linejoin", 'round')
+    .transition()
     .attr('d', function(d) {
         return line(d.value);
     });
@@ -297,24 +292,30 @@ var yAxisSpark = d3.axisLeft(yspark)
 
 //function to make a line
 var line = d3.line()
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.amt); });
+    .x(function(d) { return xspark(d.date); })
+    .y(function(d) { return yspark(d.amt); });
 
-var svgSpark = d3.select("#sparkline")
+var svgSpark = d3.select("#exports")
               .append('svg')
               .attr("id","sparkchart")
               .style("background-color","#fff")
 							.attr("width", width/12)
 							.attr("height", 300 + margin.top + margin.bottom )  //+30)
 							.append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
               svgSpark.append('g')
-  				        .attr('class', 'y axis')
+  				        .attr('class', 'yspark axis')
   				        .call(yAxisSpark);
 
               svgSpark.append('g')
-  				        .attr('class', 'x axis')
+  				        .attr('class', 'xspark axis')
   				        .call(xAxisSpark);
+
+            // svg.append('g').selectAll('path')
+  			    //     .data({[date],[],[],[],[]})
+  			    //     .enter()
+
 }//end ready
 }//end modernizr
 else {
