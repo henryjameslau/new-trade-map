@@ -16,6 +16,9 @@
 
     <link rel="stylesheet" type="text/css" href="bootstrap-grid.css">
 
+<style>
+</style>
+
 </head>
 <body>
 <div class="row">
@@ -58,7 +61,7 @@ if (Modernizr.inlinesvg) {
 function ready (error, dataexports, dataimports, config, geog){
   console.log(dataexports)
 
-  var margin = {top: 40, right: 40, bottom: 40, left: 40};
+  var margin = {top: 40, right: 40, bottom: 40, left: 50};
               //width = 960 - margin.left - margin.right,
               //height = 500 - margin.top - margin.bottom;
   width=d3.select("#mapDiv").style("width")
@@ -217,7 +220,7 @@ yspark.domain([d3.min(d3.entries(newarray),function(c){
 
 svgSpark.select('.yspark')
         .transition()
-        .call(yAxisSpark);
+        .call(yAxisSpark).select(".domain").remove();
 
 svgSpark.select('g').selectAll('path')
         .data(d3.entries(newarray))
@@ -279,18 +282,20 @@ var svg = d3.select('#imports').append('svg')
 
 //here be some stuff for making sparklines
 var xspark = d3.scaleTime()
-    .range([0, width/6]);
+    .range([0, width/12]);
 
 var yspark = d3.scaleLinear()
-    .range([0,y.bandwidth()])
+    .range([y.bandwidth()/5,0])
+
+    console.log(y.bandwidth())
 
 xspark.domain([d3.timeParse("%Y")(yearssorted[0]),d3.timeParse("%Y")(yearssorted[yearssorted.length-1])])
 // console.log([d3.timeParse("%Y")(yearssorted[yearssorted.length-1]),d3.timeParse("%Y")(yearssorted[0])])
 yspark.domain([0,100000])
 
 
-var xAxisSpark = d3.axisBottom(xspark)
-var yAxisSpark = d3.axisLeft(yspark)
+var xAxisSpark = d3.axisBottom(xspark).tickFormat("").tickSize(0)
+var yAxisSpark = d3.axisLeft(yspark).tickFormat("").tickSize(0)
 
 //function to make a line
 var line = d3.line()
@@ -300,22 +305,22 @@ var line = d3.line()
 
     colour_palette=["steelblue","DarkGreen","Fuchsia","IndianRed","Lavender"]
 
-var svgSpark = d3.select("#exports")
+var svgSpark = d3.select("#sparkline")
               .append('svg')
               .attr("id","sparkchart")
               .style("background-color","#fff")
-							.attr("width", width)
+							.attr("width", width/12)
 							.attr("height", 300 + margin.top + margin.bottom )  //+30)
 							.append("g")
-              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+               .attr("transform", "translate(" + 0 + "," + margin.top + ")");
 
               svgSpark.append('g')
   				        .attr('class', 'yspark axis')
-  				        .call(yAxisSpark);
+  				        .call(yAxisSpark).select(".domain").remove();
 
               svgSpark.append('g')
   				        .attr('class', 'xspark axis')
-  				        .call(xAxisSpark);
+  				        .call(xAxisSpark).select(".domain").remove();
 
               svgSpark.append('g').selectAll('path')
     			        .data({key:"1",value:[{date: "Date 2012-01-01T00:00:00.000Z", amt: "0"},
