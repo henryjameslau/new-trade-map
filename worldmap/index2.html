@@ -16,6 +16,9 @@
 
     <link rel="stylesheet" type="text/css" href="bootstrap-grid.css">
 
+<style>
+</style>
+
 </head>
 <body>
 <div class="row">
@@ -58,12 +61,12 @@ if (Modernizr.inlinesvg) {
 function ready (error, dataexports, dataimports, config, geog){
   console.log(dataexports)
 
-  var margin = {top: 40, right: 40, bottom: 40, left: 40};
+  var margin = {top: 40, right: 40, bottom: 40, left: 50};
               //width = 960 - margin.left - margin.right,
               //height = 500 - margin.top - margin.bottom;
   width=d3.select("#mapDiv").style("width")
   width = parseInt(width)
-  height=width*0.6
+  height=width*0.55
 
   var path = d3.geoPath();
 
@@ -75,7 +78,7 @@ function ready (error, dataexports, dataimports, config, geog){
               .attr('class', 'map');
 
   var projection = d3.geoNaturalEarth1()
-                     .scale(240)
+                     .scale(width*0.20)
                      .translate( [width/2, height/2]);
 
   var path = d3.geoPath().projection(projection);
@@ -201,7 +204,7 @@ svg.selectAll(".bars").selectAll('rect')
 
 //sparkline stuff
 
-yspark.domain = [d3.min(d3.entries(newarray),function(c){
+yspark.domain([d3.min(d3.entries(newarray),function(c){
                   return d3.min(c.value, function(v){
                     var n = v.amt;
                     return Math.floor(n);
@@ -213,20 +216,30 @@ yspark.domain = [d3.min(d3.entries(newarray),function(c){
 										var n = v.amt;
 										return Math.ceil(n);
 									});
-								})]
-
-
+								})])
 
 svgSpark.select('.yspark')
-.transition()
-.call(yAxisSpark);
+        .transition()
+        .call(yAxisSpark).select(".domain").remove();
 
-svgSpark.append('g').selectAll('path')
-    .data(d3.entries(newarray))
-    .transition()
-    .attr('d', function(d) {
-        return line(d.value);
-    });
+yrange=y.range()[1]-y.range()[0]
+padding=(yrange-(yrange*5/9))/4
+
+svgSpark.select('#sparky').selectAll('path')
+        .data(d3.entries(newarray))
+        .style("stroke",function(d,i){return colour_palette[i];})
+        .attr("transform",function(d,i){
+          if(i!=0){
+            return "translate(0,"+(i*y.bandwidth()+i*y.bandwidth()/10+y.bandwidth()/20)+")"}
+          else {
+            return "translate(0,"+(i*y.bandwidth()+y.bandwidth()/20)+")"}
+          })
+
+        .transition()
+        .attr('d', function(d) {
+            return line(d.value);
+        });
+
 
 
 }//end filterdata
@@ -283,38 +296,181 @@ var xspark = d3.scaleTime()
     .range([0, width/12]);
 
 var yspark = d3.scaleLinear()
-    .range([0,y.bandwidth()])
+    .range([y.bandwidth()/5,0])
 
-xspark.domain([d3.timeParse("%Y")(yearssorted[0]),d3.timeParse("%Y")(yearssorted[yearssorted.length])])
+    console.log(y.bandwidth())
 
-var xAxisSpark = d3.axisBottom(xspark)
-var yAxisSpark = d3.axisLeft(yspark)
+xspark.domain([d3.timeParse("%Y")(yearssorted[0]),d3.timeParse("%Y")(yearssorted[yearssorted.length-1])])
+// console.log([d3.timeParse("%Y")(yearssorted[yearssorted.length-1]),d3.timeParse("%Y")(yearssorted[0])])
+yspark.domain([0,100000])
+
+
+var xAxisSpark = d3.axisBottom(xspark).tickFormat("").tickSize(0)
+var yAxisSpark = d3.axisLeft(yspark).tickFormat("").tickSize(0)
 
 //function to make a line
 var line = d3.line()
     .x(function(d) { return xspark(d.date); })
     .y(function(d) { return yspark(d.amt); });
 
-var svgSpark = d3.select("#exports")
+
+    colour_palette=["steelblue","DarkGreen","Fuchsia","IndianRed","Lavender"]
+
+var svgSpark = d3.select("#sparkline")
               .append('svg')
               .attr("id","sparkchart")
               .style("background-color","#fff")
 							.attr("width", width/12)
 							.attr("height", 300 + margin.top + margin.bottom )  //+30)
 							.append("g")
-              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+               .attr("transform", "translate(" + 0 + "," + margin.top + ")");
 
               svgSpark.append('g')
   				        .attr('class', 'yspark axis')
-  				        .call(yAxisSpark);
+  				        .call(yAxisSpark).select(".domain").remove();
 
               svgSpark.append('g')
   				        .attr('class', 'xspark axis')
-  				        .call(xAxisSpark);
+  				        .call(xAxisSpark).select(".domain").remove();
 
-            // svg.append('g').selectAll('path')
-  			    //     .data({[date],[],[],[],[]})
-  			    //     .enter()
+              svgSpark.append('g').attr("id","sparky").selectAll('path')
+    			        .data([
+                          {
+                            "key": "1",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          },
+                          {
+                            "key": "2",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          },
+                          {
+                            "key": "3",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          },
+                          {
+                            "key": "4",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          },
+                          {
+                            "key": "5",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          }
+                        ]
+                     )
+    			        .enter()
+                  .append('path')
+                  .style("fill", 'none')
+      						.style("stroke-width", 3)
+      						.style("stroke-linecap", 'round')
+      						.style("stroke-linejoin", 'round')
+                  .attr('d', function(d) {
+                      return line(d.value);
+                  });
 
 }//end ready
 }//end modernizr
