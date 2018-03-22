@@ -31,8 +31,8 @@
 <div class="row">
   <div class="col-xs-6">
     <div class="row">
-      <div id="imports" class="col-xs-10"></div>
-      <div id="sparkline" class="col-xs-2"></div>
+      <div id="imports" class="col-xs-9"></div>
+      <div id="sparkline" class="col-xs-3"></div>
     </div>
   </div>
   <div id="exports" class="col-xs-6"></div>
@@ -61,7 +61,7 @@ if (Modernizr.inlinesvg) {
 function ready (error, dataexports, dataimports, config, geog){
   console.log(dataexports)
 
-  var margin = {top: 40, right: 40, bottom: 40, left: 50};
+  var margin = {top: 40, right: 10, bottom: 40, left: 80};
               //width = 960 - margin.left - margin.right,
               //height = 500 - margin.top - margin.bottom;
   width=d3.select("#mapDiv").style("width")
@@ -231,9 +231,6 @@ svgSpark.select('.yspark')
         .transition()
         .call(yAxisSpark).select(".domain").remove();
 
-yrange=y.range()[1]-y.range()[0]
-padding=(yrange-(yrange*5/9))/4
-
 svgSpark.select('#sparky').selectAll('path')
         .data(d3.entries(newarray))
         .style("stroke",function(d,i){return colour_palette[i];})
@@ -284,9 +281,6 @@ svgSpark.select('.yspark')
 
 svgSpark.select('.yspark').select(".domain").remove();
 
-yrange=y.range()[1]-y.range()[0]
-padding=(yrange-(yrange*5/9))/4
-
 svgSpark.select('#sparky').selectAll('path')
         .data(d3.entries(newarray))
         .style("stroke",function(d,i){return colour_palette[i];})
@@ -305,12 +299,13 @@ svgSpark.select('#sparky').selectAll('path')
 // perchange.forEach(function(d,i){
   d3.select(".perchange").selectAll('text')
   .data(perchange)
-  .attr('x',width/24)
+  .attr('x',3*width/48)
   .attr('y',function(d,i){return y.bandwidth()*i+i*y.bandwidth()/10+y.bandwidth()/2})
   .attr("text-anchor", "start")
   .style("font-size", "12px")
   .style("fill", "#666")
-  .text(function(d){return d3.format(",.1%")(d)});
+  .transition()
+  .text(function(d){return d3.format(",.0%")(d)});
 // })
 
 }//end filterdata
@@ -318,7 +313,7 @@ svgSpark.select('#sparky').selectAll('path')
 //make a bar chart
 
 var x = d3.scaleLinear()
-          .range([ 0, width/2]);
+          .range([ 0, (3*width/8)]);
 
 var y = d3.scaleBand()
           .rangeRound([0, height/3])
@@ -332,7 +327,7 @@ var xAxis = d3.axisBottom(x)
 var svg = d3.select('#imports').append('svg')
         .attr("id","importsChart")
         .style("background-color","#fff")
-        .attr("width", (width/2) + margin.left + margin.right)
+        .attr("width", (3*width/8) + margin.left + margin.right)
         .attr("height", (height/3)+ margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -344,9 +339,9 @@ var svg = d3.select('#imports').append('svg')
          .call(xAxis)
          .append("text")
          .attr("y", 25)
-         .attr("x",width/2)
+         .attr("x",3*width/8)
          .attr("dy", ".71em")
-         .style("text-anchor", "start")
+         .style("text-anchor", "end")
          .attr("font-size","12px")
          .attr("fill","#666")
          .text("xAxisLabel");
@@ -393,7 +388,7 @@ var svgSpark = d3.select("#sparkline")
               .append('svg')
               .attr("id","sparkchart")
               //.style("background-color","#fff")
-							.attr("width", width/12)
+							.attr("width", width/9)
 							.attr("height", height/3 + margin.top + margin.bottom )  //+30)
 							.append("g")
               .attr("transform", "translate(" + 0 + "," + margin.top + ")");
@@ -559,7 +554,7 @@ var svgSpark = d3.select("#sparkline")
             dummyarrayfortext.forEach(function(d,i){
               d3.select(".perchange")
               .append('text')
-              .attr('x',50)
+              .attr('x',0)
               .attr('y',y.bandwidth()/5*i)
               .attr("text-anchor", "start")
               .style("font-size", "12px")
