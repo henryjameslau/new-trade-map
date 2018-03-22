@@ -170,6 +170,14 @@ console.log("newarray")
 console.log(newarray)
 console.log(d3.entries(newarray))
 
+perchange=[]
+for(var i=0;i<top5codes.length;i++){
+  console.log()
+  perchange[i]=(newarray[top5codes[i]][top5codes.length-1].amt-newarray[top5codes[i]][0].amt)/newarray[top5codes[i]][0].amt
+}
+
+console.log(perchange)
+
 //stuff for bar charts
 bars = []
 for (var i=0;i<top5codes.length;i++){
@@ -183,6 +191,7 @@ xMax = d3.max(bars,function(v){
   var n = v.amt;
   return Math.ceil(n);
 })
+
 
 x.domain([0,xMax])
 
@@ -241,6 +250,68 @@ svgSpark.select('#sparky').selectAll('path')
         });
 
 
+y.domain(top5codes)
+svg.select('.y')
+      .transition()
+      .call(yAxis);
+
+svg.selectAll(".bars").selectAll('rect')
+    .data(bars)
+    .attr("y", function(d){return y(d.name)})
+    .transition()
+    .attr("width", function(d){return x(d.amt)})
+    .attr("height", y.bandwidth())
+
+//sparkline stuff
+
+yspark.domain([d3.min(d3.entries(newarray),function(c){
+                  return d3.min(c.value, function(v){
+                    var n = v.amt;
+                    return Math.floor(n);
+                  })
+                })
+                ,
+                d3.max(d3.entries(newarray), function(c) {
+									return d3.max(c.value, function(v) {
+										var n = v.amt;
+										return Math.ceil(n);
+									});
+								})])
+
+svgSpark.select('.yspark')
+        .transition()
+        .call(yAxisSpark);
+
+svgSpark.select('.yspark').select(".domain").remove();
+
+yrange=y.range()[1]-y.range()[0]
+padding=(yrange-(yrange*5/9))/4
+
+svgSpark.select('#sparky').selectAll('path')
+        .data(d3.entries(newarray))
+        .style("stroke",function(d,i){return colour_palette[i];})
+        .attr("transform",function(d,i){
+          if(i!=0){
+            return "translate(0,"+(i*y.bandwidth()+i*y.bandwidth()/10+y.bandwidth()/20)+")"}
+          else {
+            return "translate(0,"+(i*y.bandwidth()+y.bandwidth()/20)+")"}
+          })
+        .transition()
+        .attr('d', function(d) {
+            return line(d.value);
+        });
+
+//do percentage change for each
+// perchange.forEach(function(d,i){
+  d3.select(".perchange").selectAll('text')
+  .data(perchange)
+  .attr('x',width/24)
+  .attr('y',function(d,i){return y.bandwidth()*i+i*y.bandwidth()/10+y.bandwidth()/2})
+  .attr("text-anchor", "start")
+  .style("font-size", "12px")
+  .style("fill", "#666")
+  .text(function(d){return d3.format(",.1%")(d)});
+// })
 
 }//end filterdata
 
@@ -250,26 +321,26 @@ var x = d3.scaleLinear()
           .range([ 0, width/2]);
 
 var y = d3.scaleBand()
-          .rangeRound([0, 300])
+          .rangeRound([0, height/3])
           .paddingInner(0.1);
 
 var yAxis = d3.axisLeft(y)
 
 var xAxis = d3.axisBottom(x)
-.tickSize(-300, 0, 0);
+.tickSize(-height/3, 0, 0);
 
 var svg = d3.select('#imports').append('svg')
         .attr("id","importsChart")
         .style("background-color","#fff")
         .attr("width", (width/2) + margin.left + margin.right)
-        .attr("height", 300+ margin.top + margin.bottom)
+        .attr("height", (height/3)+ margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 
     svg.append('g')
          .attr('class', 'x axis')
-         .attr("transform", "translate(0, "+300+")")
+         .attr("transform", "translate(0, "+height/3+")")
          .call(xAxis)
          .append("text")
          .attr("y", 25)
@@ -293,7 +364,9 @@ var svg = d3.select('#imports').append('svg')
 
 //here be some stuff for making sparklines
 var xspark = d3.scaleTime()
-    .range([0, width/12]);
+
+    .range([0, width/24]);
+
 
 var yspark = d3.scaleLinear()
     .range([y.bandwidth()/5,0])
@@ -319,11 +392,12 @@ var line = d3.line()
 var svgSpark = d3.select("#sparkline")
               .append('svg')
               .attr("id","sparkchart")
-              .style("background-color","#fff")
+              //.style("background-color","#fff")
 							.attr("width", width/12)
-							.attr("height", 300 + margin.top + margin.bottom )  //+30)
+							.attr("height", height/3 + margin.top + margin.bottom )  //+30)
 							.append("g")
-               .attr("transform", "translate(" + 0 + "," + margin.top + ")");
+              .attr("transform", "translate(" + 0 + "," + margin.top + ")");
+
 
               svgSpark.append('g')
   				        .attr('class', 'yspark axis')
@@ -472,25 +546,37 @@ var svgSpark = d3.select("#sparkline")
                       return line(d.value);
                   });
 
+
+
+                  d3.select("#sparkline").select('svg')
+                  .append('g')
+                  .attr('class','perchange')
+                  .attr("transform", "translate(" + 0 + "," + margin.top + ")");
+
+//things for percentage change
+            dummyarrayfortext=[1,2,3,4,5]
+
+            dummyarrayfortext.forEach(function(d,i){
+              d3.select(".perchange")
+              .append('text')
+              .attr('x',50)
+              .attr('y',y.bandwidth()/5*i)
+              .attr("text-anchor", "start")
+              .style("font-size", "12px")
+              .style("fill", "#666")
+              .attr("font-family","'Open Sans', sans-serif")
+              .text("");
+            })
+
+
+
+
 }//end ready
 }//end modernizr
 else {
-
-
-
   var pymChild = new pym.Child();
-
   setInterval(function(){pymChild.sendHeight();},1000)
 }
-
-
-</script>
-
-
-    <script>
-
-
-
   </script>
 
 </body>
