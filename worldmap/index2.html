@@ -313,7 +313,7 @@ svgSpark.select('#sparky').selectAll('path')
 //make a bar chart
 
 var x = d3.scaleLinear()
-          .range([ 0, (3*width/8)]);
+          .range([ 0, (width/2)- margin.left - margin.right]);
 
 var y = d3.scaleBand()
           .rangeRound([0, height/3])
@@ -327,7 +327,7 @@ var xAxis = d3.axisBottom(x)
 var svg = d3.select('#imports').append('svg')
         .attr("id","importsChart")
         .style("background-color","#fff")
-        .attr("width", (3*width/8) + margin.left + margin.right)
+        .attr("width", (width/2) )
         .attr("height", (height/3)+ margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -388,7 +388,7 @@ var svgSpark = d3.select("#sparkline")
               .append('svg')
               .attr("id","sparkchart")
               //.style("background-color","#fff")
-							.attr("width", width/9)
+							.attr("width", width/6)
 							.attr("height", height/3 + margin.top + margin.bottom )  //+30)
 							.append("g")
               .attr("transform", "translate(" + 0 + "," + margin.top + ")");
