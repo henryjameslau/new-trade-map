@@ -511,7 +511,21 @@ var svgSpark = d3.select("#sparkline")
               .text("");
             })
 
+d3.select('#sparkline').select("svg")
+.append('text')
+.attr("x",0)
+.attr("y",20)
+.text("5 years change")
+.style("font-size", "12px")
+.attr("font-family","'Open Sans', sans-serif");
 
+d3.select('#imports').select("svg")
+.append('text')
+.attr("x",margin.left)
+.attr("y",20)
+.text("Top 5 imports")
+.style("font-size", "12px")
+.attr("font-family","'Open Sans', sans-serif");
 
 }//end ready
 }//end modernizr
