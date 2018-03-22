@@ -168,6 +168,7 @@ for(var i=0;i<top5codes.length;i++){
 }
 console.log("newarray")
 console.log(newarray)
+console.log(d3.entries(newarray))
 
 perchange=[]
 for(var i=0;i<top5codes.length;i++){
@@ -191,11 +192,63 @@ xMax = d3.max(bars,function(v){
   return Math.ceil(n);
 })
 
+
 x.domain([0,xMax])
 
 svg.select(".x")
 				.transition()
 				.call(xAxis);
+
+y.domain(top5codes)
+svg.select('.y')
+      .transition()
+      .call(yAxis);
+
+svg.selectAll(".bars").selectAll('rect')
+    .data(bars)
+    .attr("y", function(d){return y(d.name)})
+    .transition()
+    .attr("width", function(d){return x(d.amt)})
+    .attr("height", y.bandwidth())
+
+//sparkline stuff
+
+yspark.domain([d3.min(d3.entries(newarray),function(c){
+                  return d3.min(c.value, function(v){
+                    var n = v.amt;
+                    return Math.floor(n);
+                  })
+                })
+                ,
+                d3.max(d3.entries(newarray), function(c) {
+									return d3.max(c.value, function(v) {
+										var n = v.amt;
+										return Math.ceil(n);
+									});
+								})])
+
+svgSpark.select('.yspark')
+        .transition()
+        .call(yAxisSpark).select(".domain").remove();
+
+yrange=y.range()[1]-y.range()[0]
+padding=(yrange-(yrange*5/9))/4
+
+svgSpark.select('#sparky').selectAll('path')
+        .data(d3.entries(newarray))
+        .style("stroke",function(d,i){return colour_palette[i];})
+        .attr("transform",function(d,i){
+          if(i!=0){
+            return "translate(0,"+(i*y.bandwidth()+i*y.bandwidth()/10+y.bandwidth()/20)+")"}
+          else {
+            return "translate(0,"+(i*y.bandwidth()+y.bandwidth()/20)+")"}
+          })
+
+        .transition()
+        .attr('d', function(d) {
+            return line(d.value);
+        });
+
 
 y.domain(top5codes)
 svg.select('.y')
@@ -311,7 +364,9 @@ var svg = d3.select('#imports').append('svg')
 
 //here be some stuff for making sparklines
 var xspark = d3.scaleTime()
+
     .range([0, width/24]);
+
 
 var yspark = d3.scaleLinear()
     .range([y.bandwidth()/5,0])
@@ -342,6 +397,7 @@ var svgSpark = d3.select("#sparkline")
 							.attr("height", height/3 + margin.top + margin.bottom )  //+30)
 							.append("g")
               .attr("transform", "translate(" + 0 + "," + margin.top + ")");
+
 
               svgSpark.append('g')
   				        .attr('class', 'yspark axis')
@@ -491,6 +547,7 @@ var svgSpark = d3.select("#sparkline")
                   });
 
 
+
                   d3.select("#sparkline").select('svg')
                   .append('g')
                   .attr('class','perchange')
@@ -510,6 +567,7 @@ var svgSpark = d3.select("#sparkline")
               .attr("font-family","'Open Sans', sans-serif")
               .text("");
             })
+
 
 
 
