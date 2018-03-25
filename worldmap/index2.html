@@ -16,6 +16,10 @@
 
     <link rel="stylesheet" type="text/css" href="bootstrap-grid.css">
 
+	<style>
+	
+	
+	</style>
 </head>
 <body>
 <div class="row">
@@ -185,6 +189,14 @@ function createBarcode(){
 	console.log(barcodeimports);
 	console.log(barcodeexports);
 	
+	var barcodeWidth=parseInt(d3.select("#barcode").style("width"));
+	
+	var barcodemargin = [40,0, 10, 60];
+	
+	var gap = 10;
+	
+	var barWidth = (barcodeWidth - barcodemargin[3] - gap) / 2;
+	
 	var importsTotals = barcodeimports.map(function(d,i) {
 	  return {
 		CountryName: d.CountryName,
@@ -212,30 +224,102 @@ function createBarcode(){
 	//create y axis scale
 	barcodeyScale=d3.scaleLinear()
 		.domain([0,maxValue])
-		.range([barcodeHeight,0]);
+		.range([barcodeHeight-barcodemargin[0]-barcodemargin[2],0]);
 
 	barcodePlot = d3.select("#barcode").append("svg")
 		.attr("id","barcodeplot")
 		.attr("width",barcodeWidth)
-		.attr("height",barcodeHeight)
+		.attr("height",barcodeHeight);
 
 	//create main axis
 	yAxisChar=d3.axisLeft()
 		.scale(barcodeyScale)
 		.ticks(8);
 
-	barcodePlot.append("g")
+	barcodeArea = barcodePlot.append("g")
 		.attr("class","axis")
-		.attr("transform","translate(60,0)")
+		.attr("transform","translate(" + barcodemargin[3] + "," + barcodemargin[0]+ ")")
 		.call(yAxisChar);
+		
+	barcodeArea.append("g")
+		.selectAll(".barcodeBarI")
+		.data(importsTotals)
+		.enter()
+		.append("rect")
+		.attr("id", function(d){return d.CountryId + "_I"})
+		.attr("fill","red")
+		.attr("class", function(d){return "barcodeBarI " + d.CountryId})
+		//.attr("transform", "translate(" + barcodemargin[3] + ",0)")
+		.attr("y", function(d) {
+				return barcodeyScale(Math.max(0, d.total));
+		})
+		.attr("height","2px")
+		.attr("width",barWidth)
+		.on("mouseover", function(){selectArea(this.id.slice(0, 2))})
+//		.on("mouseout", function(){deselect(this.id.slice(0, 2))});
 
-	
-	
-	
-
+	barcodeArea.append("g")
+		.selectAll(".barcodeBarE")
+		.data(exportsTotals)
+		.enter()
+		.append("rect")
+		.attr("id", function(d){return d.CountryId + "_E"})
+		.attr("fill","blue")
+		.attr("class", function(d){return "barcodeBare " + d.CountryId})
+		.attr("transform", "translate(" + eval(barWidth + gap) + ",0)")
+		.attr("y", function(d) {
+				return barcodeyScale(Math.max(0, d.total));
+		})
+		.attr("height","2px")
+		.attr("width",barWidth)
+		.on("mouseover", function(){selectArea(this.id.slice(0, 2))})
+//		.on("mouseout", function(){deselect(this.id.slice(0, 2))});
 
 
 } // end createBarcode
+
+//Moves SVG elements to the end of their container, so they appear "on top".
+//Achieves a nice, smooth fade by duplicating the clicked element, moving the
+//dupe to the front, then fading it in, while fading out the original element
+//at the same time.
+function fadeToFront() {
+
+	//Select this element, that we want to move to front
+	var orig = d3.select(this);
+	var origNode = orig.node();
+	
+	//Clone it, and append the copy on "top" (meaning, at the end of
+	var dupe = d3.select(origNode.parentNode.appendChild(origNode.cloneNode(true), origNode.nextSibling));
+
+	//Make the new element transparent immediately, then fade it in over time
+	dupe.style("opacity", 0.0)
+		.transition()
+		.duration(4200)
+		.style("opacity", 1.0)
+		.on("end", function() {
+
+			//When the fade-in is complete, add the click event…
+			d3.select(this)
+				.on("mouseover", function(){selectArea(this.id.slice(0, 2))})
+				.on("mouseout", function(){deselect(this.id.slice(0, 2))});
+
+			//…and delete the original
+			//orig.remove();
+
+		})
+		
+
+} //end fadeToFront
+
+function selectArea(areacode) {
+	d3.selectAll("." + areacode).attr("fill", "black").each(fadeToFront);	
+	
+} //end selectArea
+
+function deselect(areacode) {
+	d3.selectAll("." + areacode).attr("fill", "green");
+	
+} //end selectArea
 
 
 //make a bar chart
