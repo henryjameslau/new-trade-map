@@ -186,8 +186,6 @@ svg.append('g').attr("class","bars").selectAll('rect')
 function createBarcode(){
 	barcodeimports = dataimports.filter(function(d){return d.Year==lastyear});
 	barcodeexports = dataexports.filter(function(d){return d.Year==lastyear});
-	console.log(barcodeimports);
-	console.log(barcodeexports);
 	
 	var barcodeWidth=parseInt(d3.select("#barcode").style("width"));
 	
