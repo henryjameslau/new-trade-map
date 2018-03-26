@@ -52,20 +52,18 @@ if (Modernizr.inlinesvg) {
 
   d3.queue()
           .defer(d3.csv, "exports.csv")
-          .defer(d3.csv, "dummyimports2.csv")
+          .defer(d3.csv, "imports.csv")
           .defer(d3.json, "config.json")
           .defer(d3.json, "geo/worldjson8.json")
           .await(ready);
 
 
 function ready (error, dataexports, dataimports, config, geog){
-  console.log(dataexports)
 
   var margin = {top: 40, right: 10, bottom: 40, left: 80};
               //width = 960 - margin.left - margin.right,
               //height = 500 - margin.top - margin.bottom;
-  width=d3.select("#mapDiv").style("width")
-  width = parseInt(width)
+  width=parseInt(d3.select("#mapDiv").style("width"));
   height=width*0.55
 
   var path = d3.geoPath();
@@ -100,6 +98,8 @@ function ready (error, dataexports, dataimports, config, geog){
 getLastYear();
 getColumnNames();
 
+createBarcode();
+
 //gets the last year in the dataset
 function getLastYear(){
   var years = dataimports.map(function(obj) { return obj.Year; });
@@ -116,39 +116,34 @@ function getColumnNames(){
             if (column == "CountryName") continue;
             if (column == "CountryId") continue;
             if (column == "Year") continue;
+			if (column == "Total") continue;
             variables.push(column);
         }
 }
 
 function filterdata(code){
-console.log(code)
 latestcountrydata = dataimports.filter(function(d){return d.CountryId==code && d.Year==lastyear})
-console.log(latestcountrydata)
 
 lastyeardata = [];
 for (var column in latestcountrydata[0]) {
     if (column == "CountryName") continue;
     if (column == "CountryId") continue;
     if (column == "Year") continue;
+	if (column == "Total") continue;
     lastyeardata.push(latestcountrydata[0][column]);
 }
 
 //zip the data with list of variables, sort it descending, then take top 5
 zippeddata=d3.zip(lastyeardata,variables).sort(function(a,b){return d3.descending(+a[0],+b[0]);}).slice(0,5)
-console.log(zippeddata);
 
 //get the codes for the top 5 commodities
 top5codes=[];
 zippeddata.forEach(function(d,i){
   top5codes.push(d[1])
 })
-console.log("top5codes")
-console.log(top5codes)
 
 //get data for that country for all years
 countrydata_all = dataimports.filter(function(d){return d.CountryId==code})
-console.log("countrydata_all")
-console.log(countrydata_all)
 
 //find the data for all the top 5 commodities
 temparray=[]
@@ -157,8 +152,6 @@ countrydata_all.forEach(function(d){
       temparray.push({year:+d.Year,code:top5codes[i],amt:+d[top5codes[i]]})
     }
   })
-console.log("temparray")
-console.log(temparray)
 
 //put it into a format for sparklines
 newarray = {};
@@ -183,8 +176,6 @@ bars = []
 for (var i=0;i<top5codes.length;i++){
   bars.push({'name':top5codes[i],'amt':+latestcountrydata[0][top5codes[i]]})
 }
-console.log("data for bars")
-console.log(bars)
 
 //find the max number for the x domain
 xMax = d3.max(bars,function(v){
@@ -309,6 +300,65 @@ svgSpark.select('#sparky').selectAll('path')
 // })
 
 }//end filterdata
+
+function createBarcode(){
+	barcodeimports = dataimports.filter(function(d){return d.Year==lastyear});
+	barcodeexports = dataexports.filter(function(d){return d.Year==lastyear});
+	console.log(barcodeimports);
+	console.log(barcodeexports);
+
+	var importsTotals = barcodeimports.map(function(d,i) {
+	  return {
+		CountryName: d.CountryName,
+		CountryId: d.CountryId,
+		total: d.Total
+	  };
+	});
+
+	var exportsTotals = barcodeexports.map(function(d,i) {
+	  return {
+		CountryName: d.CountryName,
+		CountryId: d.CountryId,
+		total: d.Total
+	  };
+	});
+
+
+	//LET'S FIND OUT MORE ABOUT THE DATA
+	//find max values of entire arrays (so that scale is kept constant)(first value is max)
+	maxValue = d3.max([d3.max(barcodeimports, function(d) { return +d.Total;}), d3.max(barcodeexports, function(d) { return +d.Total;})]);
+
+	barcodeHeight=parseInt(d3.select("#mapDiv").style("height"));
+	barcodeWidth=parseInt(d3.select("#barcode").style("width"));
+
+	//create y axis scale
+	barcodeyScale=d3.scaleLinear()
+		.domain([0,maxValue])
+		.range([barcodeHeight,0]);
+
+	barcodePlot = d3.select("#barcode").append("svg")
+		.attr("id","barcodeplot")
+		.attr("width",barcodeWidth)
+		.attr("height",barcodeHeight)
+
+	//create main axis
+	yAxisChar=d3.axisLeft()
+		.scale(barcodeyScale)
+		.ticks(8);
+
+	barcodePlot.append("g")
+		.attr("class","axis")
+		.attr("transform","translate(60,0)")
+		.call(yAxisChar);
+
+
+
+
+
+
+
+} // end createBarcode
+
 
 //make a bar chart
 
