@@ -16,10 +16,9 @@
 
     <link rel="stylesheet" type="text/css" href="bootstrap-grid.css">
 
-	<style>
-	
-	
-	</style>
+<style>
+</style>
+
 </head>
 <body>
 <div class="row">
@@ -30,7 +29,12 @@
     <div id="barcode" class="col-sm-3 col-xs-12"></div>
 </div>
 <div class="row">
-  <div id="imports" class="col-xs-6"></div>
+  <div class="col-xs-6">
+    <div class="row">
+      <div id="imports" class="col-xs-9"></div>
+      <div id="sparkline" class="col-xs-3"></div>
+    </div>
+  </div>
   <div id="exports" class="col-xs-6"></div>
 <div>
 
@@ -56,11 +60,11 @@ if (Modernizr.inlinesvg) {
 
 function ready (error, dataexports, dataimports, config, geog){
 
-  var margin = {top: 40, right: 40, bottom: 40, left: 40};
+  var margin = {top: 40, right: 10, bottom: 40, left: 80};
               //width = 960 - margin.left - margin.right,
               //height = 500 - margin.top - margin.bottom;
   width=parseInt(d3.select("#mapDiv").style("width"));
-  height=width*0.6
+  height=width*0.55
 
   var path = d3.geoPath();
 
@@ -72,7 +76,7 @@ function ready (error, dataexports, dataimports, config, geog){
               .attr('class', 'map');
 
   var projection = d3.geoNaturalEarth1()
-                     .scale(240)
+                     .scale(width*0.20)
                      .translate( [width/2, height/2]);
 
   var path = d3.geoPath().projection(projection);
@@ -83,7 +87,7 @@ function ready (error, dataexports, dataimports, config, geog){
       .data(topojson.feature(geog, geog.objects.worldjson8).features)
     .enter().append("path")
       .attr("d", path)
-      .style("fill", "papapawhip")
+      .style("fill", "DarkGreen")
       .style('stroke', 'white')
       .style('stroke-width', 1.5)
       .style("opacity",0.8)
@@ -129,8 +133,10 @@ for (var column in latestcountrydata[0]) {
     lastyeardata.push(latestcountrydata[0][column]);
 }
 
+//zip the data with list of variables, sort it descending, then take top 5
 zippeddata=d3.zip(lastyeardata,variables).sort(function(a,b){return d3.descending(+a[0],+b[0]);}).slice(0,5)
 
+//get the codes for the top 5 commodities
 top5codes=[];
 zippeddata.forEach(function(d,i){
   top5codes.push(d[1])
@@ -138,7 +144,6 @@ zippeddata.forEach(function(d,i){
 
 //get data for that country for all years
 countrydata_all = dataimports.filter(function(d){return d.CountryId==code})
-
 
 //find the data for all the top 5 commodities
 temparray=[]
@@ -154,47 +159,160 @@ for(var i=0;i<top5codes.length;i++){
   newarray[top5codes[i]]=temparray.filter(function(d){return d.code==top5codes[i]})
                                   .map(function(d){return {date:d3.timeParse("%Y")(d.year),amt:d.amt}})
 }
+console.log("newarray")
+console.log(newarray)
+console.log(d3.entries(newarray))
+
+perchange=[]
+for(var i=0;i<top5codes.length;i++){
+  console.log()
+  perchange[i]=(newarray[top5codes[i]][top5codes.length-1].amt-newarray[top5codes[i]][0].amt)/newarray[top5codes[i]][0].amt
+}
+
+console.log(perchange)
 
 //stuff for bar charts
 bars = []
 for (var i=0;i<top5codes.length;i++){
-  // bars.push([top5codes[i],+latestcountrydata[0][top5codes[i]]])
   bars.push({'name':top5codes[i],'amt':+latestcountrydata[0][top5codes[i]]})
 }
 
+//find the max number for the x domain
+xMax = d3.max(bars,function(v){
+  var n = v.amt;
+  return Math.ceil(n);
+})
 
-d3.selectAll(".y").selectAll("*").remove()
+
+x.domain([0,xMax])
+
+svg.select(".x")
+				.transition()
+				.call(xAxis);
+
 y.domain(top5codes)
-svg.append('g')
-      .attr('class', 'y axis')
+svg.select('.y')
+      .transition()
       .call(yAxis);
 
-svg.append('g').attr("class","bars").selectAll('rect')
-     .data(bars)
-     .enter()
-     .append('rect')
-     .attr("fill", "steelblue")
-     .attr("width", function(d){return x(d.amt)})
-     .attr("x", function(d){return x(0)})
-     .attr("y", function(d){return y(d.name)})
-     .attr("height", y.bandwidth())
+svg.selectAll(".bars").selectAll('rect')
+    .data(bars)
+    .attr("y", function(d){return y(d.name)})
+    .transition()
+    .attr("width", function(d){return x(d.amt)})
+    .attr("height", y.bandwidth())
+
+//sparkline stuff
+
+yspark.domain([d3.min(d3.entries(newarray),function(c){
+                  return d3.min(c.value, function(v){
+                    var n = v.amt;
+                    return Math.floor(n);
+                  })
+                })
+                ,
+                d3.max(d3.entries(newarray), function(c) {
+									return d3.max(c.value, function(v) {
+										var n = v.amt;
+										return Math.ceil(n);
+									});
+								})])
+
+svgSpark.select('.yspark')
+        .transition()
+        .call(yAxisSpark).select(".domain").remove();
+
+svgSpark.select('#sparky').selectAll('path')
+        .data(d3.entries(newarray))
+        .style("stroke",function(d,i){return colour_palette[i];})
+        .attr("transform",function(d,i){
+          if(i!=0){
+            return "translate(0,"+(i*y.bandwidth()+i*y.bandwidth()/10+y.bandwidth()/20)+")"}
+          else {
+            return "translate(0,"+(i*y.bandwidth()+y.bandwidth()/20)+")"}
+          })
+
+        .transition()
+        .attr('d', function(d) {
+            return line(d.value);
+        });
 
 
+y.domain(top5codes)
+svg.select('.y')
+      .transition()
+      .call(yAxis);
+
+svg.selectAll(".bars").selectAll('rect')
+    .data(bars)
+    .attr("y", function(d){return y(d.name)})
+    .transition()
+    .attr("width", function(d){return x(d.amt)})
+    .attr("height", y.bandwidth())
+
+//sparkline stuff
+
+yspark.domain([d3.min(d3.entries(newarray),function(c){
+                  return d3.min(c.value, function(v){
+                    var n = v.amt;
+                    return Math.floor(n);
+                  })
+                })
+                ,
+                d3.max(d3.entries(newarray), function(c) {
+									return d3.max(c.value, function(v) {
+										var n = v.amt;
+										return Math.ceil(n);
+									});
+								})])
+
+svgSpark.select('.yspark')
+        .transition()
+        .call(yAxisSpark);
+
+svgSpark.select('.yspark').select(".domain").remove();
+
+svgSpark.select('#sparky').selectAll('path')
+        .data(d3.entries(newarray))
+        .style("stroke",function(d,i){return colour_palette[i];})
+        .attr("transform",function(d,i){
+          if(i!=0){
+            return "translate(0,"+(i*y.bandwidth()+i*y.bandwidth()/10+y.bandwidth()/20)+")"}
+          else {
+            return "translate(0,"+(i*y.bandwidth()+y.bandwidth()/20)+")"}
+          })
+        .transition()
+        .attr('d', function(d) {
+            return line(d.value);
+        });
+
+//do percentage change for each
+// perchange.forEach(function(d,i){
+  d3.select(".perchange").selectAll('text')
+  .data(perchange)
+  .attr('x',3*width/48)
+  .attr('y',function(d,i){return y.bandwidth()*i+i*y.bandwidth()/10+y.bandwidth()/2})
+  .attr("text-anchor", "start")
+  .style("font-size", "12px")
+  .style("fill", "#666")
+  .transition()
+  .text(function(d){return d3.format(",.0%")(d)});
+// })
 
 }//end filterdata
 
 function createBarcode(){
 	barcodeimports = dataimports.filter(function(d){return d.Year==lastyear});
 	barcodeexports = dataexports.filter(function(d){return d.Year==lastyear});
-	
+
 	var barcodeWidth=parseInt(d3.select("#barcode").style("width"));
-	
+
 	var barcodemargin = [40,0, 10, 60];
-	
+
 	var gap = 10;
-	
+
 	var barWidth = (barcodeWidth - barcodemargin[3] - gap) / 2;
-	
+
 	var importsTotals = barcodeimports.map(function(d,i) {
 	  return {
 		CountryName: d.CountryName,
@@ -202,7 +320,7 @@ function createBarcode(){
 		total: d.Total
 	  };
 	});
-	
+
 	var exportsTotals = barcodeexports.map(function(d,i) {
 	  return {
 		CountryName: d.CountryName,
@@ -210,12 +328,12 @@ function createBarcode(){
 		total: d.Total
 	  };
 	});
-	
 
-	//LET'S FIND OUT MORE ABOUT THE DATA	
+
+	//LET'S FIND OUT MORE ABOUT THE DATA
 	//find max values of entire arrays (so that scale is kept constant)(first value is max)
 	maxValue = d3.max([d3.max(barcodeimports, function(d) { return +d.Total;}), d3.max(barcodeexports, function(d) { return +d.Total;})]);
-	
+
 	barcodeHeight=parseInt(d3.select("#mapDiv").style("height"));
 	barcodeWidth=parseInt(d3.select("#barcode").style("width"));
 
@@ -238,7 +356,7 @@ function createBarcode(){
 		.attr("class","axis")
 		.attr("transform","translate(" + barcodemargin[3] + "," + barcodemargin[0]+ ")")
 		.call(yAxisChar);
-		
+
 	barcodeArea.append("g")
 		.selectAll(".barcodeBarI")
 		.data(importsTotals)
@@ -285,7 +403,7 @@ function fadeToFront() {
 	//Select this element, that we want to move to front
 	var orig = d3.select(this);
 	var origNode = orig.node();
-	
+
 	//Clone it, and append the copy on "top" (meaning, at the end of
 	var dupe = d3.select(origNode.parentNode.appendChild(origNode.cloneNode(true), origNode.nextSibling));
 
@@ -305,58 +423,53 @@ function fadeToFront() {
 			//orig.remove();
 
 		})
-		
+
 
 } //end fadeToFront
 
 function selectArea(areacode) {
-	d3.selectAll("." + areacode).attr("fill", "black").each(fadeToFront);	
-	
+	d3.selectAll("." + areacode).attr("fill", "black").each(fadeToFront);
+
 } //end selectArea
 
 function deselect(areacode) {
 	d3.selectAll("." + areacode).attr("fill", "green");
-	
+
 } //end selectArea
 
 
 //make a bar chart
 
 var x = d3.scaleLinear()
-          .range([ 0, width/2]);
+          .range([ 0, (width/2)- margin.left - margin.right]);
 
 var y = d3.scaleBand()
-          .rangeRound([0, 300])
+          .rangeRound([0, height/3])
           .paddingInner(0.1);
-
-    //y.domain(["1","2","3","4","5"])
-
-    //manually set the x-axis for now
-    x.domain([0,1000000])
 
 var yAxis = d3.axisLeft(y)
 
 var xAxis = d3.axisBottom(x)
-.tickSize(-300, 0, 0);
+.tickSize(-height/3, 0, 0);
 
 var svg = d3.select('#imports').append('svg')
         .attr("id","importsChart")
         .style("background-color","#fff")
-        .attr("width", (width/2) + margin.left + margin.right)
-        .attr("height", 300+ margin.top + margin.bottom)
+        .attr("width", (width/2) )
+        .attr("height", (height/3)+ margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 
     svg.append('g')
          .attr('class', 'x axis')
-         .attr("transform", "translate(0, "+300+")")
+         .attr("transform", "translate(0, "+height/3+")")
          .call(xAxis)
          .append("text")
          .attr("y", 25)
-         .attr("x",width/2)
+         .attr("x",3*width/8)
          .attr("dy", ".71em")
-         .style("text-anchor", "start")
+         .style("text-anchor", "end")
          .attr("font-size","12px")
          .attr("fill","#666")
          .text("xAxisLabel");
@@ -365,27 +478,242 @@ var svg = d3.select('#imports').append('svg')
            .attr('class', 'y axis')
            .call(yAxis);
 
+     svg.append('g').attr("class","bars").selectAll('rect')
+          .data([0,0,0,0,0])
+          .enter()
+          .append('rect')
+          .attr("fill", "steelblue")
+          .attr("x", function(d){return x(0)})
+
+//here be some stuff for making sparklines
+var xspark = d3.scaleTime()
+
+    .range([0, width/24]);
+
+
+var yspark = d3.scaleLinear()
+    .range([y.bandwidth()/5,0])
+
+    console.log(y.bandwidth())
+
+xspark.domain([d3.timeParse("%Y")(yearssorted[0]),d3.timeParse("%Y")(yearssorted[yearssorted.length-1])])
+// console.log([d3.timeParse("%Y")(yearssorted[yearssorted.length-1]),d3.timeParse("%Y")(yearssorted[0])])
+yspark.domain([0,100000])
+
+
+var xAxisSpark = d3.axisBottom(xspark).tickFormat("").tickSize(0)
+var yAxisSpark = d3.axisLeft(yspark).tickFormat("").tickSize(0)
+
+//function to make a line
+var line = d3.line()
+    .x(function(d) { return xspark(d.date); })
+    .y(function(d) { return yspark(d.amt); });
+
+
+    colour_palette=["steelblue","DarkGreen","Fuchsia","IndianRed","Lavender"]
+
+var svgSpark = d3.select("#sparkline")
+              .append('svg')
+              .attr("id","sparkchart")
+              //.style("background-color","#fff")
+							.attr("width", width/6)
+							.attr("height", height/3 + margin.top + margin.bottom )  //+30)
+							.append("g")
+              .attr("transform", "translate(" + 0 + "," + margin.top + ")");
+
+
+              svgSpark.append('g')
+  				        .attr('class', 'yspark axis')
+  				        .call(yAxisSpark).select(".domain").remove();
+
+              svgSpark.append('g')
+  				        .attr('class', 'xspark axis')
+  				        .call(xAxisSpark).select(".domain").remove();
+
+              svgSpark.append('g').attr("id","sparky").selectAll('path')
+    			        .data([
+                          {
+                            "key": "1",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          },
+                          {
+                            "key": "2",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          },
+                          {
+                            "key": "3",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          },
+                          {
+                            "key": "4",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          },
+                          {
+                            "key": "5",
+                            "value": [
+                              {
+                                "date": "2012-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2013-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2014-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2015-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              },
+                              {
+                                "date": "2016-01-01T00:00:00.000Z",
+                                "amt": "0"
+                              }
+                            ]
+                          }
+                        ]
+                     )
+    			        .enter()
+                  .append('path')
+                  .style("fill", 'none')
+      						.style("stroke-width", 3)
+      						.style("stroke-linecap", 'round')
+      						.style("stroke-linejoin", 'round')
+                  .attr('d', function(d) {
+                      return line(d.value);
+                  });
+
+
+
+                  d3.select("#sparkline").select('svg')
+                  .append('g')
+                  .attr('class','perchange')
+                  .attr("transform", "translate(" + 0 + "," + margin.top + ")");
+
+//things for percentage change
+            dummyarrayfortext=[1,2,3,4,5]
+
+            dummyarrayfortext.forEach(function(d,i){
+              d3.select(".perchange")
+              .append('text')
+              .attr('x',0)
+              .attr('y',y.bandwidth()/5*i)
+              .attr("text-anchor", "start")
+              .style("font-size", "12px")
+              .style("fill", "#666")
+              .attr("font-family","'Open Sans', sans-serif")
+              .text("");
+            })
+
+d3.select('#sparkline').select("svg")
+.append('text')
+.attr("x",0)
+.attr("y",20)
+.text("5 years change")
+.style("font-size", "12px")
+.attr("font-family","'Open Sans', sans-serif");
+
+d3.select('#imports').select("svg")
+.append('text')
+.attr("x",margin.left)
+.attr("y",20)
+.text("Top 5 imports")
+.style("font-size", "12px")
+.attr("font-family","'Open Sans', sans-serif");
 
 
 }//end ready
 }//end modernizr
 else {
-
-
-
   var pymChild = new pym.Child();
-
   setInterval(function(){pymChild.sendHeight();},1000)
 }
-
-
-</script>
-
-
-    <script>
-
-
-
   </script>
 
 </body>
